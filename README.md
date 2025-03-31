@@ -1,4 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌼 Polite Light
+
+**Polite Light** is a calm, supportive web app designed to help lighten the mental load.  
+It blends gentle UX with AI-powered features to help users reflect, organize, and share invisible work with care.
+
+### ✨ Features (Planned)
+- Brain dump with AI-powered summaries
+- Emotional support through affirming responses
+- Task breakdown + delegation
+- Mental load analytics
+- Daily check-ins and self-care prompts
+
+### 🔧 Built With
+- Next.js (App Router)
+- Tailwind CSS
+- OpenAI API
+- Nest.js (backend, coming soon)
+- PostgreSQL (via Prisma)
+
+> *Made with heart by Noz 💛*
+
 
 ## Getting Started
 
