@@ -17,7 +17,7 @@ It blends gentle UX with AI-powered features to help users reflect, organize, an
 - Nest.js (backend, coming soon)
 - PostgreSQL (via Prisma)
 
-> *Made with heart by Noz 💛*
+> *Made with heart by Nazanin 💛*
 
 
 ## Getting Started
