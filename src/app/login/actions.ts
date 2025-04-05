@@ -9,13 +9,19 @@ import { createClient } from '../utils/supabase/server'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
+  const email = formData.get('email')
+  const password = formData.get('password')
+  
+  console.log('Form values:', { email, password })
+
   const validatedFields = authSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
+    email,
+    password,
   })
 
   if (!validatedFields.success) {
-    throw new Error('Invalid fields')
+    console.log('Validation errors:', validatedFields.error)
+    redirect('/error')
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -24,6 +30,7 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
+    console.log('Auth error:', error)
     throw new Error(error.message)
   }
 
@@ -45,8 +52,7 @@ export async function signup(formData: FormData) {
   })
 
   if (!validatedFields.success) {
-    console.log('Validation errors:', validatedFields.error)
-    throw new Error('Invalid fields')
+    redirect('/error')
   }
 
   const { error } = await supabase.auth.signUp({
