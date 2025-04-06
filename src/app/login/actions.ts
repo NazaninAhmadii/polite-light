@@ -6,13 +6,9 @@ import { redirect } from 'next/navigation'
 import { authSchema } from '../lib/schemas/auth'
 import { createClient } from '../utils/supabase/server'
 
-export async function login(formData: FormData) {
-  const supabase = await createClient()
-
+async function validateAuthData(formData: FormData) {
   const email = formData.get('email')
   const password = formData.get('password')
-  
-  console.log('Form values:', { email, password })
 
   const validatedFields = authSchema.safeParse({
     email,
@@ -24,14 +20,21 @@ export async function login(formData: FormData) {
     redirect('/error')
   }
 
+  return validatedFields.data
+}
+
+export async function login(formData: FormData) {
+  const supabase = await createClient()
+  const { email, password } = await validateAuthData(formData)
+
   const { error } = await supabase.auth.signInWithPassword({
-    email: validatedFields.data.email,
-    password: validatedFields.data.password,
+    email,
+    password,
   })
 
   if (error) {
     console.log('Auth error:', error)
-    throw new Error(error.message)
+    redirect('/error')
   }
 
   revalidatePath('/')
@@ -40,28 +43,15 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient()
+  const { email, password } = await validateAuthData(formData)
 
-  const email = formData.get('email')
-  const password = formData.get('password')
-  
-  console.log('Form values:', { email, password })
-
-  const validatedFields = authSchema.safeParse({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
   })
 
-  if (!validatedFields.success) {
-    redirect('/error')
-  }
-
-  const { error } = await supabase.auth.signUp({
-    email: validatedFields.data.email,
-    password: validatedFields.data.password,
-  })
-
   if (error) {
-    throw new Error(error.message)
+    redirect('/error')
   }
 
   revalidatePath('/')
