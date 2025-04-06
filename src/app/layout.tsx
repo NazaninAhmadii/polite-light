@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider"
-import { ModeToggle } from "@/components/ui/mode-toggle"
+import { ThemeProvider } from "./components/theme-provider"
+import { ModeToggle } from "./components/ui/mode-toggle"
+import { UserProvider } from "./contexts/UserContext"
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,17 +19,19 @@ export default function RootLayout({
       <body
         className={`antialiased`}
       >
-        <ThemeProvider
+        <UserProvider>
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-          <div className="fixed top-4 right-4">
-            <ModeToggle />
-          </div>
-          {children}
-        </ThemeProvider>
+            <div className="fixed top-4 right-4">
+              <ModeToggle />
+            </div>
+            {children}
+          </ThemeProvider>
+        </UserProvider>
       </body>
     </html>
   );
