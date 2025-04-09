@@ -14,14 +14,14 @@ const supabase = createBrowserClient(
 export default function BrainDumpInput() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
-  const user = useUserData()
+  const { userData } = useUserData()
   const handleSubmit = async () => {
     if (!content.trim()) return
 
     setLoading(true)
 
     const { error } = await supabase.from('brain_dumps').insert({
-      user_id: user?.id,
+      user_id: userData?.id,
       content,
       ai_summary: null,
       ai_tags: null

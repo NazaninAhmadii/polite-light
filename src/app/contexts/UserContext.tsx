@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { User } from '@supabase/supabase-js'
 
 interface UserData {
   id: string
@@ -9,35 +10,67 @@ interface UserData {
   name?: string
 }
 
-const UserContext = createContext<UserData | null>(null)
+interface UserContextType {
+  userData: UserData | null
+  isLoading: boolean
+}
+
+const UserContext = createContext<UserContextType>({ userData: null, isLoading: true })
 
 export const useUserData = () => useContext(UserContext)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null)
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const [isLoading, setIsLoading] = useState(true)
+
+  const supabase = React.useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
   )
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      console.log('user in provider', user)
+    const updateUserData = (user: User | null) => {
+      console.log('Updating user data:', user)
       if (user) {
         setUserData({
           id: user.id,
           email: user.email ?? '',
           name: user.user_metadata?.name ?? ''
         })
+      } else {
+        setUserData(null)
+      }
+      setIsLoading(false)
+    }
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        updateUserData(user)
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          console.log('session', session)
+          updateUserData(session?.user ?? null)
+        })
+
+        return () => {
+          subscription.unsubscribe()
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error)
+        setIsLoading(false)
       }
     }
 
-    getUser()
-  }, [])
+    initializeAuth()
+  }, [supabase])
 
   return (
-    <UserContext.Provider value={userData}>
+    <UserContext.Provider value={{ userData, isLoading }}>
       {children}
     </UserContext.Provider>
   )
