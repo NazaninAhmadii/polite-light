@@ -39,7 +39,7 @@ export default function BrainDumpInput() {
   return (
     <div className="space-y-4">
       <Textarea
-        placeholder="Write anything that’s on your mind..."
+        placeholder="Just dump it here, no judgment. Get it out of your head..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
