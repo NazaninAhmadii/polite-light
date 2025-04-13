@@ -3,37 +3,36 @@
 import { useState } from 'react'
 import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
-import { useUserData } from '../../contexts/UserContext'
-import { createBrowserClient } from '@supabase/ssr'
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 export default function BrainDumpInput() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
-  const { userData } = useUserData()
+
   const handleSubmit = async () => {
     if (!content.trim()) return
 
     setLoading(true)
 
-    const { error } = await supabase.from('brain_dumps').insert({
-      user_id: userData?.id,
-      content,
-      ai_summary: null,
-      ai_tags: null
-    })
+    try {
+      const response = await fetch('/api/braindump', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content }),
+      })
 
-    if (error) {
-      console.error('Error saving brain dump:', error)
-    } else {
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save brain dump')
+      }
+
       setContent('')
+    } catch (error) {
+      console.error('Error saving brain dump:', error)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
