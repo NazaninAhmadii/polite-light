@@ -12,18 +12,12 @@ export async function POST(request: Request) {
         cookies: {
           getAll() {
             return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
           }
         }
       }
     )
-    
-    const { content } = await request.json()
 
+    const { content } = await request.json()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError) {
