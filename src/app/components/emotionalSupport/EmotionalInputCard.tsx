@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
+import { useUserData } from '../../contexts/UserContext'
 
 const moods = ['😔', '😐', '🙂', '😊', '❤️‍🔥']
 
@@ -11,14 +12,15 @@ export default function SoloSupportCard() {
   const [mood, setMood] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [response, setResponse] = useState('')
+  const { userData } = useUserData()
 
   const handleSubmit = async () => {
     if (!content || !mood) return
     setSubmitting(true)
 
-    const res = await fetch('/api/emotion-entry', {
+    const res = await fetch('/api/emotionalsupport', {
       method: 'POST',
-      body: JSON.stringify({ content, mood }),
+      body: JSON.stringify({ content, mood, user_id: userData?.id }),
       headers: {
         'Content-Type': 'application/json'
       }
@@ -32,7 +34,7 @@ export default function SoloSupportCard() {
   return (
     <div className="rounded-2xl shadow-md mx-auto">
       <Textarea
-        placeholder="“I’m here for you. Let’s unpack this together...”"
+        placeholder="I'm here for you. Let's unpack this together..."
         className="mb-4"
         value={content}
         onChange={(e) => setContent(e.target.value)}
