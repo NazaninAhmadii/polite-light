@@ -1,21 +1,11 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-
-const cookieStore = cookies()
-const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: {
-        getAll() {
-            return cookieStore.getAll()
-        }
-    } }
-)
+import { createClient } from "@/app/utils/supabase/server"
 
 export async function GET() {
-    // Get the authenticated user from Supabase
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+    try {
+        const supabase = await createClient()
+        // Get the authenticated user from Supabase
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -30,12 +20,21 @@ export async function GET() {
     return NextResponse.json({ error: sessionError.message }, { status: 500 })
   }
 
-  return NextResponse.json(sessions, { status: 200 })
+        return NextResponse.json(sessions, { status: 200 })
+    } catch (error) {
+        console.error('Unexpected error:', error)
+        return NextResponse.json(
+            { error: `Internal server error: ${error}` },
+            { status: 500 }
+        )
+    }
 }
 
 // POST: Create a new session
 export async function POST(request: Request) {
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    try {
+        const supabase = await createClient()
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -59,6 +58,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: insertError.message }, { status: 500 })
     }
   
-    // Return the newly created session (typically the first element)
-    return NextResponse.json(data[0], { status: 201 })
-  }
+        // Return the newly created session (typically the first element)
+        return NextResponse.json(data[0], { status: 201 })
+    } catch (error) {
+        console.error('Unexpected error:', error)
+        return NextResponse.json(
+            { error: `Internal server error: ${error}` },
+            { status: 500 }
+        )
+    }
+}
