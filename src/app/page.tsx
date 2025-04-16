@@ -5,6 +5,7 @@ import Greeting from './components/user/Greeting'
 import BrainDumpInput from './components/brainDump/BraindumpInput'
 import EmotionalInputCard from './components/emotionalSupport/EmotionalInputCard'
 import { UserProvider } from './contexts/UserContext'
+import ConsultationSessions from './components/consultations/ConsultationSessions'
 
 export default function Home() {
   return (
@@ -29,6 +30,15 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <EmotionalInputCard />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>💬 Consultation Sessions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConsultationSessions />
           </CardContent>
         </Card>
       </main>
