@@ -2,21 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-
-type Session = {
-  id: string
-  user_id: string
-  mood: string | null
-  title: string | null
-  started_at: string
-  updated_at: string
-  ended_at?: string | null
-  is_active: boolean
-  summary: string | null
-}
+import { SessionSchema } from '@/app/lib/schemas/session'
 
 export default function ConsultationSessions() {
-  const [sessions, setSessions] = useState<Session[]>([])
+  const [sessions, setSessions] = useState<SessionSchema[]>([])
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
