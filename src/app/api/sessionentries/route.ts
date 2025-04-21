@@ -10,7 +10,7 @@ export async function GET() {
         }
 
         const { data: emotionalEntries, error: emotionalEntriesError } = await supabase
-            .from('emotional_entries')
+            .from('session_entries')
             .select('*')
             .eq('user_id', user.id)
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { error } = await supabase.from('emotional_entries').insert({
+        const { error } = await supabase.from('session_entries').insert({
             content,
             mood,
             user_id

@@ -4,22 +4,27 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SessionSchema } from '@/app/lib/schemas/session'
 
+const ITEMS_PER_PAGE = 10
+
 export default function ConsultationSessions() {
   const [sessions, setSessions] = useState<SessionSchema[]>([])
   const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
 
-  // Fetch user's sessions on component mount
+  // Fetch user's sessions on component mount and page change
   useEffect(() => {
     async function fetchSessions() {
       setLoading(true)
       try {
-        const res = await fetch('/api/session')
+        const res = await fetch(`/api/sessions?page=${page}&limit=${ITEMS_PER_PAGE}`)
         if (!res.ok) {
           throw new Error('Failed to fetch sessions')
         }
         const data = await res.json()
-        setSessions(data)
+        setSessions(prev => page === 1 ? data.sessions : [...prev, ...data.sessions])
+        setHasMore(data.hasMore)
       } catch (error) {
         console.error('Error fetching sessions:', error)
       } finally {
@@ -27,7 +32,7 @@ export default function ConsultationSessions() {
       }
     }
     fetchSessions()
-  }, [])
+  }, [page])
 
   // Handle creation of a new session
   async function handleNewSession() {
@@ -50,13 +55,30 @@ export default function ConsultationSessions() {
       const newSession = await res.json()
       // Navigate to the consultation page for this session.
       // For example, you might have a route like /consultation/[sessionId]
-      router.push(`/consultation/${newSession.id}`)
+      router.push(`/session/${newSession.id}`)
     } catch (error) {
       console.error('Error creating session:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  // Handle infinite scroll
+  function handleScroll() {
+    if (
+      window.innerHeight + document.documentElement.scrollTop === 
+      document.documentElement.offsetHeight &&
+      !loading &&
+      hasMore
+    ) {
+      setPage(prev => prev + 1)
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [loading, hasMore])
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -93,6 +115,9 @@ export default function ConsultationSessions() {
             <p className="text-gray-600">No sessions found. Start a new one!</p>
           )}
         </ul>
+      )}
+      {loading && sessions.length > 0 && (
+        <p className="text-center text-gray-600 mt-4">Loading more sessions...</p>
       )}
     </div>
   )

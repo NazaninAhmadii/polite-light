@@ -30,7 +30,7 @@ export default function ChatSupportCard() {
 
     // Send the current conversation (or at least the latest message) to your API.
     // Optionally you may also send conversation history for richer context.
-    const res = await fetch('/api/emotionalsupport', {
+    const res = await fetch('/api/sessionentries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
