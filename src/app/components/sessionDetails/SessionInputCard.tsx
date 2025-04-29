@@ -19,49 +19,78 @@ export default function ChatSupportCard() {
   const sendMessage = async () => {
     if (!input.trim()) return
 
-    // Append user's message to the conversation history.
+    // Append user's message to the conversation history
     const userMessage: Message = { role: 'user', content: input }
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
 
-    // Clear the input.
+    // Clear the input
     setInput('')
     setSubmitting(true)
 
-    // Send the current conversation (or at least the latest message) to your API.
-    // Optionally you may also send conversation history for richer context.
-    const res = await fetch('/api/sessionentries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content: userMessage.content,
-        mood: null, // You may choose to remove mood here or handle it differently per message.
-        // If you are handling a true consultation, you might rely on a session-based approach.
-        user_id: userData?.id,
-        conversation: updatedMessages
+    try {
+      // First get AI response
+      const aiResponse = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: input }),
       })
-    })
 
-    const data = await res.json()
-    // Append the AI's response.
-    const aiMessage: Message = { role: 'assistant', content: data.ai_response }
-    setMessages((prev) => [...prev, aiMessage])
-    setSubmitting(false)
+      if (!aiResponse.ok) {
+        throw new Error('Failed to get AI response')
+      }
+
+      const { response } = await aiResponse.json()
+
+      // Then save the conversation to the database
+      const res = await fetch('/api/sessionentries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: userMessage.content,
+          mood: null,
+          user_id: userData?.id,
+          conversation: [...updatedMessages, { role: 'assistant', content: response }]
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to save conversation')
+      }
+
+      // Append the AI's response to the chat
+      const aiMessage: Message = { role: 'assistant', content: response }
+      setMessages(prev => [...prev, aiMessage])
+    } catch (error) {
+      console.error('Error:', error)
+      // Optionally show an error message to the user
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
-    <div className="rounded-2xl shadow-md mx-auto p-4 bg-white">
+    <div className="rounded-2xl shadow-md mx-auto p-2 bg-slate-900">
       {/* Chat window */}
-      <div className="mb-4 h-64 overflow-y-auto border p-4 rounded bg-gray-50">
+      <div className="mb-4 h-64 overflow-y-auto p-4 rounded bg-slate-950 border border-slate-800">
         {messages.length === 0 ? (
-          <p className="text-gray-600 italic">Your consultation will appear here...</p>
+          <p className="text-gray-300 italic">Your consultation will appear here...</p>
         ) : (
           messages.map((msg, index) => (
-            <div key={index} className={`mb-3 ${msg.role === 'assistant' ? 'text-blue-600' : 'text-gray-800'}`}>
+            <div 
+              key={index} 
+              className={`mb-3 p-3 rounded-lg ${
+                msg.role === 'assistant' 
+                  ? 'bg-indigo-950 text-indigo-100' 
+                  : 'bg-slate-800 text-gray-100'
+              }`}
+            >
               <span className="font-semibold">
                 {msg.role === 'assistant' ? 'Polite Light' : 'You'}:
               </span>
-              <p>{msg.content}</p>
+              <p className="mt-1">{msg.content}</p>
             </div>
           ))
         )}
@@ -73,9 +102,15 @@ export default function ChatSupportCard() {
           placeholder="Type your message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1"
+          className="flex-1 bg-slate-950 text-gray-100 border-slate-800 placeholder:text-gray-400 focus-visible:ring-slate-700"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              sendMessage()
+            }
+          }}
         />
-        <Button disabled={submitting} onClick={sendMessage}>
+        <Button disabled={submitting || !input.trim()} onClick={sendMessage}>
           {submitting ? 'Sending...' : 'Send'}
         </Button>
       </div>
