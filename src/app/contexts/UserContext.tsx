@@ -26,15 +26,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const supabase = React.useMemo(
     () =>
       createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_API_KEY!
       ),
     []
   )
 
   useEffect(() => {
     const updateUserData = (user: User | null) => {
-      console.log('Updating user data:', user)
       if (user) {
         setUserData({
           id: user.id,
