@@ -81,7 +81,7 @@ export default function ConsultationSessions() {
   }, [loading, hasMore])
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="max-w-2xl space-y-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Begin Your Healing Journey Here 👉</h2>
         <button 
@@ -96,7 +96,7 @@ export default function ConsultationSessions() {
       {loading && sessions.length === 0 ? (
         <p className="text-gray-600">Loading sessions...</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-2">
           {sessions.length > 0 ? (
             sessions.map((session) => (
               <li key={session.id} className="p-4 border rounded shadow-sm hover:shadow-md transition">
