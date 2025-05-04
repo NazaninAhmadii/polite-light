@@ -6,6 +6,13 @@ import { SessionSchema } from '@/app/lib/schemas/session'
 import SessionInputCard from '@/app/components/sessionDetails/SessionInputCard'
 import EndSessionDialog from '@/app/components/sessionDetails/EndSessionDialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
+import { Pencil, Smile, Frown, Meh } from 'lucide-react'
+
+const MOOD_OPTIONS = [
+  { emoji: '😊', value: 'happy', icon: Smile },
+  { emoji: '😐', value: 'neutral', icon: Meh },
+  { emoji: '😔', value: 'sad', icon: Frown },
+]
 
 export default function ConsultationSession() {
   const { sessionId } = useParams()
@@ -13,6 +20,9 @@ export default function ConsultationSession() {
   const [session, setSession] = useState<SessionSchema | null>(null)
   const [loading, setLoading] = useState(true)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedTitle, setEditedTitle] = useState('')
+  const [editedMood, setEditedMood] = useState('')
 
   useEffect(() => {
     async function fetchSession() {
@@ -23,6 +33,8 @@ export default function ConsultationSession() {
         }
         const data = await res.json()
         setSession(data)
+        setEditedTitle(data.title || '')
+        setEditedMood(data.mood || '')
       } catch (error) {
         console.error('Error fetching session:', error)
       } finally {
@@ -59,6 +71,32 @@ export default function ConsultationSession() {
     setShowConfirmDialog(false)
   }
 
+  // Handle title and mood update
+  async function handleUpdate() {
+    try {
+      const res = await fetch(`/api/session/${sessionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: editedTitle,
+          mood: editedMood,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to update session')
+      }
+
+      const updatedSession = await res.json()
+      setSession(updatedSession)
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Error updating session:', error)
+    }
+  }
+
   if (loading) {
     return <div className="p-4">Loading session...</div>
   }
@@ -80,7 +118,51 @@ export default function ConsultationSession() {
 
       <Card>
         <CardHeader>
-          <CardTitle>💬 {session.title || 'Untitled Consultation'}</CardTitle>
+          <div className="flex items-center gap-2">
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                className="flex-1 px-2 py-1 border rounded"
+                placeholder="Enter session title"
+              />
+            ) : (
+              <CardTitle>💬 {session.title || 'Untitled Consultation'}</CardTitle>
+            )}
+            <button
+              onClick={() => {
+                if (isEditing) {
+                  handleUpdate()
+                } else {
+                  setIsEditing(true)
+                }
+              }}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            {MOOD_OPTIONS.map(({ emoji, value, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => {
+                  setEditedMood(value)
+                  if (isEditing) {
+                    handleUpdate()
+                  }
+                }}
+                className={`p-2 rounded-full hover:bg-gray-100 ${
+                  (isEditing ? editedMood : session.mood) === value
+                    ? 'bg-gray-200'
+                    : ''
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+              </button>
+            ))}
+          </div>
           <p className="text-gray-600">
             Started: {new Date(session.started_at).toLocaleString()}
           </p>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/app/lib/supabase'
 import { Redis } from '@upstash/redis'
 import { Ratelimit } from '@upstash/ratelimit'
+import { createClient } from '@/app/utils/supabase/server'
 
 // Initialize Redis client
 const redis = new Redis({
@@ -74,6 +75,50 @@ export async function GET(
     return NextResponse.json(session)
   } catch (error) {
     console.error('Error fetching session:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { sessionId: string } }
+) {
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { title, mood, summary } = await request.json()
+
+    const { data: session, error } = await supabase
+      .from('sessions')
+      .update({
+        title,
+        mood,
+        summary,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', params.sessionId)
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      throw error
+    }
+
+    // Clear the cache for this session
+    await redis.del(`session:${params.sessionId}`)
+
+    return NextResponse.json(session)
+  } catch (error) {
+    console.error('Error updating session:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
