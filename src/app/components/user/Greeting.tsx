@@ -4,7 +4,6 @@ import { useUserData } from '../../contexts/UserContext'
 
 export default function UserGreeting() {
   const { userData, isLoading } = useUserData()
-  console.log('userData in greeting', userData)
 
   if (isLoading) {
     return (

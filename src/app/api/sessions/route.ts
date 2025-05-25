@@ -3,17 +3,17 @@ import { Redis } from '@upstash/redis'
 import { Ratelimit } from '@upstash/ratelimit'
 import { createClient } from '@/app/utils/supabase/server'
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+// // Initialize Redis client
+// const redis = new Redis({
+//   url: process.env.UPSTASH_REDIS_REST_URL!,
+//   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+// })
 
-// Initialize rate limiter
-const ratelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(100, '1 m'),
-})
+// // Initialize rate limiter
+// const ratelimit = new Ratelimit({
+//   redis,
+//   limiter: Ratelimit.slidingWindow(100, '1 m'),
+// })
 
 const CACHE_TTL = 60 * 5 // 5 minutes
 
@@ -25,16 +25,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     // Get the IP address from the request
-    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
+    // const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
     
-    // Check rate limit
-    const { success } = await ratelimit.limit(ip)
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: 429 }
-      )
-    }
+    // // Check rate limit
+    // const { success } = await ratelimit.limit(ip)
+    // if (!success) {
+    //   return NextResponse.json(
+    //     { error: 'Too many requests' },
+    //     { status: 429 }
+    //   )
+    // }
 
     // Get pagination parameters
     const { searchParams } = new URL(request.url)
@@ -42,12 +42,12 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = (page - 1) * limit
 
-    // Try to get from cache first
-    const cacheKey = `sessions:${page}:${limit}`
-    const cachedSessions = await redis.get(cacheKey)
-    if (cachedSessions) {
-      return NextResponse.json(cachedSessions)
-    }
+    // // Try to get from cache first
+    // const cacheKey = `sessions:${page}:${limit}`
+    // const cachedSessions = await redis.get(cacheKey)
+    // if (cachedSessions) {
+    //   return NextResponse.json(cachedSessions)
+    // }
 
     // Fetch sessions with pagination for the current user
     const { data: sessions, error, count } = await supabase
@@ -67,10 +67,10 @@ export async function GET(request: Request) {
       total: count
     }
 
-    // Cache the response
-    await redis.set(cacheKey, response, {
-      ex: CACHE_TTL
-    })
+    // // Cache the response
+    // await redis.set(cacheKey, response, {
+    //   ex: CACHE_TTL
+    // })
 
     return NextResponse.json(response)
   } catch (error) {
