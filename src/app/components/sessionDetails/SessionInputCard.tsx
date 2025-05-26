@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { Textarea } from '../ui/textarea'
 import { Button } from '../ui/button'
 import { useUserData } from '../../contexts/UserContext'
+import { type MoodValue } from '@/app/lib/schemas/mood'
 
 type Message = {
   role: 'user' | 'assistant'
   content: string
 }
 
-export default function ChatSupportCard() {
+export default function ChatSupportCard({ sessionId, emotionalMood }: { sessionId: string, emotionalMood: MoodValue }) {
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -50,9 +51,10 @@ export default function ChatSupportCard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: userMessage.content,
-          mood: null,
+          emotional_state: emotionalMood,
           user_id: userData?.id,
-          conversation: [...updatedMessages, { role: 'assistant', content: response }]
+          session_id: sessionId,
+          ai_response: response
         })
       })
 

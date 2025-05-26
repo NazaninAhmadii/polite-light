@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
 import Greeting from './components/user/Greeting'
 import BrainDumpInput from './components/brainDump/BraindumpInput'
-import SessionInputCard from './components/sessionDetails/SessionInputCard'
 import { UserProvider } from './contexts/UserContext'
 import ConsultationSessions from './components/consultation/ConsultationSessions'
 

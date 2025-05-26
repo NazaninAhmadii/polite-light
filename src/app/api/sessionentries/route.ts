@@ -31,7 +31,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const supabase = await createClient()
-        const { content, emotional_state, user_id } = await request.json()
+        const { content, emotional_state, user_id, session_id, ai_response } = await request.json()
 
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         
@@ -48,7 +48,9 @@ export async function POST(request: Request) {
         const { error } = await supabase.from('session_entries').insert({
             content,
             emotional_state,
-            user_id
+            user_id,
+            session_id,
+            ai_response
         })
 
         if (error) {
